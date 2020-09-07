@@ -92,6 +92,8 @@ else
     TMK_COMMON_DEFS += -DNO_DEBUG
 endif
 
+TMK_COMMON_SRC += $(COMMON_DIR)/layer_with_mod_tap.c
+
 ifeq ($(strip $(NKRO_ENABLE)), yes)
     ifeq ($(PROTOCOL), VUSB)
         $(info NKRO is not currently supported on V-USB, and has been disabled.)
@@ -108,6 +110,8 @@ endif
 ifeq ($(strip $(USB_6KRO_ENABLE)), yes)
     TMK_COMMON_DEFS += -DUSB_6KRO_ENABLE
 endif
+
+TMK_COMMON_SRC += $(COMMON_DIR)/layer_with_mod_tap.c
 
 ifeq ($(strip $(SLEEP_LED_ENABLE)), yes)
     TMK_COMMON_SRC += $(PLATFORM_COMMON_DIR)/sleep_led.c
