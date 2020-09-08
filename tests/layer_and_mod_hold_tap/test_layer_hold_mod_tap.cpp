@@ -85,11 +85,11 @@ TEST_F(LayerModHoldTapTest, PressingForLessThanTappingTermResultsInTap) {
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
     ExpectDeactivation();
-    ExpectTap(KC_1);
+    ExpectTap(KC_ESC);
   }
 }
 
-TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsIsNoop) {
+TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
@@ -106,6 +106,23 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsIsNoop) {
   }
 }
 
+//TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModifiedPress) {
+  //{
+    //ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
+    //ExpectActivation();
+  //}
+
+  //// Bot down and up swallowed.
+  //ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+  //ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+
+  //{
+    //ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
+    //ExpectTap(KC_1);
+    //ExpectDeactivation();
+  //}
+//}
+
 TEST_F(LayerModHoldTapTest, InterruptingTapWithoutAnIncompleteKeyPressShouldResultInTapPlusFlush) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
@@ -119,7 +136,8 @@ TEST_F(LayerModHoldTapTest, InterruptingTapWithoutAnIncompleteKeyPressShouldResu
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
     ExpectDeactivation();
 
-    ExpectTap(KC_1);
+    ExpectTap(KC_ESC);
+
     // TODO: Apply layer fix. This should be KC_Q since from layer 0.
     ExpectKeyPressed(KC_1);
   }
