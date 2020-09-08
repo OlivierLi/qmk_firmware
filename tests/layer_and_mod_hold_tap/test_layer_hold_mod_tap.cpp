@@ -5,7 +5,7 @@
 using testing::_;
 using testing::InSequence;
 
-class Tapping : public TestFixture {
+class LayerModHoldTapTest : public TestFixture {
   protected:
     void ExpectActivation(){
       // Noop triggered by layer change.
@@ -56,25 +56,44 @@ class Tapping : public TestFixture {
     std::vector<uint8_t> keys;
 };
 
-TEST_F(Tapping, TapA_SHFT_T_KeyReportsKey) {
-  // Press the key.
-  press_key(7, 0);
-  ExpectActivation();
+enum class Position {
+  DOWN,
+  UP
+};
 
-  run_one_scan_loop();
+class ScopedPhysicalKeyPress {
+  public:
+    explicit ScopedPhysicalKeyPress(LayerModHoldTapTest* test,
+        uint8_t col, uint8_t row, Position position):test_(test){
+      if(position == Position::DOWN){
+        press_key(col, row);
+      }
+      else {
+        release_key(col, row);
+      }
+    }
+    ~ScopedPhysicalKeyPress(){
+      test_->run_one_scan_loop();
+    }
+  private:
+    LayerModHoldTapTest* test_;
+};
 
-  // Then the release
-  release_key(7, 0);
 
-  ExpectDeactivation();
+TEST_F(LayerModHoldTapTest, PressingForLessThanTappingTermResultsInTap) {
+  {
+    ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
+    ExpectActivation();
+  }
 
-  // Lastly the tap.
-  ExpectTap(KC_1);
-
-  run_one_scan_loop();
+  {
+    ScopedPhysicalKeyPress down(this, 7, 0, Position::UP);
+    ExpectDeactivation();
+    ExpectTap(KC_1);
+  }
 }
 
-TEST_F(Tapping, TapA_SHFT_T_KeyReportsKey_2) {
+TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsIsNoop) {
   // Press the key.
   press_key(7, 0);
   ExpectActivation();
