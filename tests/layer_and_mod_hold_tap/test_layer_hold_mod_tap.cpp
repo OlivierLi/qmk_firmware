@@ -106,6 +106,27 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
   }
 }
 
+TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
+  {
+    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+  }
+
+  {
+    ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
+    ExpectActivation();
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
+    ExpectTap(KC_Q);
+    ExpectDeactivation();
+  }
+}
+
 TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModifiedPress) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
@@ -127,10 +148,44 @@ TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModif
   }
 }
 
-TEST_F(LayerModHoldTapTest, InterruptingTapWithoutAnIncompleteKeyPressShouldResultInTapPlusFlush) {
+TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifiedPress) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
+  }
+
+  // Within tapping term, key is swallowed.
+  {
+    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+  }
+
+  idle_for(TAPPING_TERM);
+
+  // Outisde tapping term.
+  {
+    ScopedPhysicalKeyPress down(this, 1, 0, Position::DOWN);
+
+    // Buffered presses are flushed and the latest one is let through.
+    ExpectKeyPressed(KC_1);
+    ExpectKeyPressed(KC_2);
+  }
+
+  // Noop on special key release.
+  {
+    ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
+    ExpectDeactivation();
+  }
+}
+
+TEST_F(LayerModHoldTapTest, InterruptingTapWithAnIncompleteKeyPressShouldResultsInTapPlusFlush) {
+  {
+    ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
+    ExpectActivation();
+  }
+
+  // Within tapping term, key is swallowed.
+  {
+    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
   }
 
   // Within tapping term, key is swallowed.
@@ -144,7 +199,8 @@ TEST_F(LayerModHoldTapTest, InterruptingTapWithoutAnIncompleteKeyPressShouldResu
 
     ExpectTap(KC_ESC);
 
-    // TODO: Apply layer fix. This should be KC_Q since from layer 0.
-    ExpectKeyPressed(KC_1);
+    // Since layer and mod were cancelled the keycode from the
+    // previous layer should be emitted.
+    ExpectKeyPressed(KC_Q);
   }
 }
