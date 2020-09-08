@@ -98,6 +98,8 @@ ifeq ($(strip $(COMMAND_ENABLE)), yes)
     TMK_COMMON_DEFS += -DCOMMAND_ENABLE
 endif
 
+    TMK_COMMON_SRC += $(COMMON_DIR)/layer_with_mod_tap.c
+
 ifeq ($(strip $(NKRO_ENABLE)), yes)
     ifneq ($(PROTOCOL),VUSB)
         TMK_COMMON_DEFS += -DNKRO_ENABLE

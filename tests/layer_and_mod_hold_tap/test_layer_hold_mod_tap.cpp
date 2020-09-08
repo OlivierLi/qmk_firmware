@@ -106,22 +106,26 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
   }
 }
 
-//TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModifiedPress) {
-  //{
-    //ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
-    //ExpectActivation();
-  //}
+TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModifiedPress) {
+  {
+    ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
+    ExpectActivation();
+  }
 
-  //// Bot down and up swallowed.
-  //ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
-  //ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+  {
+    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+  }
 
-  //{
-    //ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
-    //ExpectTap(KC_1);
-    //ExpectDeactivation();
-  //}
-//}
+  {
+    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
+    ExpectTap(KC_1);
+    ExpectDeactivation();
+  }
+}
 
 TEST_F(LayerModHoldTapTest, InterruptingTapWithoutAnIncompleteKeyPressShouldResultInTapPlusFlush) {
   {
@@ -130,7 +134,9 @@ TEST_F(LayerModHoldTapTest, InterruptingTapWithoutAnIncompleteKeyPressShouldResu
   }
 
   // Within tapping term, key is swallowed.
-  ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+  {
+    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+  }
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);

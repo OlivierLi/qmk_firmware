@@ -7,6 +7,7 @@
 #define TAPPING_TERM 200
 
 enum custom_keycodes {
+  RGB_SLD = 128,
   LAYER_TAP_MOD,
 };
 
