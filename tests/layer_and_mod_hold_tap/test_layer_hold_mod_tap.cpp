@@ -83,7 +83,7 @@ TEST_F(LayerModHoldTapTest, PressingForLessThanTappingTermResultsInTap) {
   }
 
   {
-    ScopedPhysicalKeyPress down(this, 7, 0, Position::UP);
+    ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
     ExpectDeactivation();
     ExpectTap(KC_1);
   }
@@ -98,10 +98,29 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsIsNoop) {
   idle_for(TAPPING_TERM);
 
   {
-    ScopedPhysicalKeyPress down(this, 7, 0, Position::UP);
+    ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
     ExpectDeactivation();
     // No tap since release happened outside of
     // tapping term.
     ExpectNoMorePresses();
+  }
+}
+
+TEST_F(LayerModHoldTapTest, InterruptingTapWithoutAnIncompleteKeyPressShouldResultInTapPlusFlush) {
+  {
+    ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
+    ExpectActivation();
+  }
+
+  // Within tapping term, key is swallowed.
+  ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+
+  {
+    ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
+    ExpectDeactivation();
+
+    ExpectTap(KC_1);
+    // TODO: Apply layer fix. This should be KC_Q since from layer 0.
+    ExpectKeyPressed(KC_1);
   }
 }
