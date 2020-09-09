@@ -102,7 +102,6 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
 
     // Activate the layer and modifier first.
     previous_layer = current_layer;
-
     layer_on(layer);
     register_mods(MOD_BIT(hold_mod));
 
@@ -112,7 +111,7 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
   // Key up.
   else{
     const uint16_t elapsed_time = record->event.time - last_layer_tap_mod_down_time;
-    if (elapsed_time < TAPPING_TERM) {
+    if (elapsed_time <= TAPPING_TERM) {
       // Normal tap.
       if(!interrupted){
         // Reset state.

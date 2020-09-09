@@ -95,7 +95,7 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
     ExpectActivation();
   }
 
-  idle_for(TAPPING_TERM);
+  idle_for(TAPPING_TERM+1);
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
@@ -161,7 +161,7 @@ TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifie
     ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
   }
 
-  idle_for(TAPPING_TERM);
+  idle_for(TAPPING_TERM+1);
 
   // Outisde tapping term.
   {
