@@ -28,7 +28,7 @@ class LayerModHoldTapTest : public TestFixture {
 
   void ExpectKeyReleased(uint8_t key) {
     auto it = std::find(keys.begin(), keys.end(), key);
-    EXPECT_NE(it, keys.end());
+    ASSERT_NE(it, keys.end());
     keys.erase(it);
 
     ExpectKeys();
@@ -109,6 +109,7 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
 TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
   {
     ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+    ExpectKeyPressed(KC_Q);
   }
 
   {
@@ -122,8 +123,9 @@ TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResult
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
-    ExpectTap(KC_Q);
     ExpectDeactivation();
+    ExpectTap(KC_ESC);
+    ExpectKeyReleased(KC_Q);
   }
 }
 
@@ -181,11 +183,6 @@ TEST_F(LayerModHoldTapTest, InterruptingTapWithAnIncompleteKeyPressShouldResults
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
-  }
-
-  // Within tapping term, key is swallowed.
-  {
-    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
   }
 
   // Within tapping term, key is swallowed.
