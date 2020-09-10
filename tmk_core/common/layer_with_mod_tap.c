@@ -86,6 +86,7 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
     struct InteruptingPress interupting_press = {
       .is_down = is_down, 
       .keycode = keycode,
+      .time = record->event.time,
       .previous_layer_keycode = GetKeyFromMatrix(previous_layer, record)};
 
     pending_keys[pending_keys_count++] = interupting_press;
@@ -135,14 +136,27 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
         layer_off(layer);
       }
       else {
-        // Reset state.
-        unregister_mods(MOD_BIT(hold_mod));
-        layer_off(layer);
+        if(pending_keys_count > 0 && (pending_keys[0].time - last_layer_tap_mod_down_time > 60)){
+          struct InteruptingPress interupting_press = pending_keys[0];
+          interupting_press.is_down = false;
+          pending_keys[pending_keys_count++] = interupting_press;
 
-        register_code16(tap_keycode);
-        unregister_code16(tap_keycode);
+          flush_pending(false);
 
-        flush_pending(true);
+          // Reset state.
+          unregister_mods(MOD_BIT(hold_mod));
+          layer_off(layer);
+        }
+        else{
+          // Reset state.
+          unregister_mods(MOD_BIT(hold_mod));
+          layer_off(layer);
+
+          register_code16(tap_keycode);
+          unregister_code16(tap_keycode);
+
+          flush_pending(true);
+        }
       }
     }
     else {

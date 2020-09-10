@@ -17,5 +17,5 @@
 #define FIRMWARE_VERSION u8"JwnlO/yB9Vo"
 
 #ifndef TAPPING_TERM
-#define TAPPING_TERM 200
+#define TAPPING_TERM 160 
 #endif

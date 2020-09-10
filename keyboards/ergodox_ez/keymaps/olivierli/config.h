@@ -4,3 +4,5 @@
 */
 #define ORYX_CONFIGURATOR
 #define FIRMWARE_VERSION u8"RlLEW/yB53z"
+
+#define TAPPING_TERM 160

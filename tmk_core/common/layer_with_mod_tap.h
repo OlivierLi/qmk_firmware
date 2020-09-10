@@ -11,6 +11,7 @@ struct InteruptingPress {
   bool is_down;
   uint16_t keycode;
   uint16_t previous_layer_keycode;
+  uint16_t time;
 };
 // ----------------------------------------------------------------------------
 
