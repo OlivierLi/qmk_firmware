@@ -6,6 +6,10 @@ using testing::_;
 using testing::InSequence;
 
 class LayerModHoldTapTest : public TestFixture {
+ public:
+   void TearDown() override {
+    //clear_all_keys();
+   }
  protected:
   void ExpectActivation() {
     // Noop triggered by layer change.
@@ -199,5 +203,10 @@ TEST_F(LayerModHoldTapTest, InterruptingTapWithAnIncompleteKeyPressShouldResults
     // Since layer and mod were cancelled the keycode from the
     // previous layer should be emitted.
     ExpectKeyPressed(KC_Q);
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+    ExpectKeyReleased(KC_Q);
   }
 }

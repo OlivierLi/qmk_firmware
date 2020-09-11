@@ -34,7 +34,7 @@ bool complete_press_buffered(void){
   return false;
 }
 
-void flush_pending(bool use_previous_layer ){
+void flush_pending(bool use_previous_layer){
 
   for(int i=0;i<pending_keys_count;++i){
 
@@ -136,7 +136,10 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
         layer_off(layer);
       }
       else {
-        if(pending_keys_count > 0 && (pending_keys[0].time - last_layer_tap_mod_down_time > 60)){
+
+        const uint16_t time_between_mod_tap_and_first_buffer = pending_keys[0].time - last_layer_tap_mod_down_time;
+
+        if(pending_keys_count > 0 && time_between_mod_tap_and_first_buffer > 60){
           struct InteruptingPress interupting_press = pending_keys[0];
           interupting_press.is_down = false;
           pending_keys[pending_keys_count++] = interupting_press;
@@ -147,6 +150,7 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
           unregister_mods(MOD_BIT(hold_mod));
           layer_off(layer);
         }
+
         else{
           // Reset state.
           unregister_mods(MOD_BIT(hold_mod));
