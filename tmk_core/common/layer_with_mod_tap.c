@@ -1,4 +1,5 @@
 #include "quantum.h"
+#include "quantum/keymap.h"
 #include "layer_with_mod_tap.h"
 
 uint16_t last_layer_tap_mod_down_time = 0;
@@ -9,17 +10,6 @@ struct InteruptingPress pending_keys[PENDING_KEYS_BUFFER_SIZE] = {0};
 uint8_t pending_keys_count = 0;
 uint8_t current_layer = 0; 
 uint8_t previous_layer = 0; 
-
-__attribute__ ((weak))
-  uint16_t keymap_key_to_keycode(uint8_t layer, keypos_t key)
-{
-  // Read entire word (16bits)
-  return pgm_read_word(&keymaps[(layer)][(key.row)][(key.col)]);
-}
-
-uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record){
-  return keymap_key_to_keycode(layer, record->event.key);
-}
 
 bool complete_press_buffered(void){
   for(int i=0;i<pending_keys_count;++i){
@@ -87,7 +77,7 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
       .is_down = is_down, 
       .keycode = keycode,
       .time = record->event.time,
-      .previous_layer_keycode = GetKeyFromMatrix(previous_layer, record)};
+      .previous_layer_keycode = keymap_key_to_keycode(previous_layer, record->event.key)};
 
     pending_keys[pending_keys_count++] = interupting_press;
   }
