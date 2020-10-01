@@ -10,7 +10,7 @@
 struct InteruptingPress {
   bool is_down;
   uint16_t keycode;
-  uint16_t previous_layer_keycode;
+  uint16_t target_layer_keycode;
   uint16_t time;
 };
 // ----------------------------------------------------------------------------
@@ -26,10 +26,6 @@ extern uint8_t current_layer;
 extern uint8_t previous_layer; 
 // ----------------------------------------------------------------------------
 
-// translates key to keycode
-__attribute__ ((weak))
-  uint16_t keymap_key_to_keycode(uint8_t layer, keypos_t key);
-
 //TODO: This works, it just can't grab KC_TRANSPARENT! We can grab the keycode
 //TODO: That is sent from the user function and also use keymaps in conjunction!
 //TODO: Whenever get grab the key we can run down the layers and grab the key for
@@ -39,6 +35,8 @@ __attribute__ ((weak))
 uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record);
 
 bool complete_press_buffered(void);
+
+bool buffer_key(uint16_t keycode, keyrecord_t *record);
 
 void flush_pending(bool use_previous_layer);
 

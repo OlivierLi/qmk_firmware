@@ -8,12 +8,11 @@ using testing::InSequence;
 class LayerModHoldTapTest : public TestFixture {
  public:
    void TearDown() override {
-    //clear_all_keys();
+     // All keys should be accounted for by the end of the test.
+     EXPECT_EQ(keys.size(), 0);
    }
  protected:
   void ExpectActivation() {
-    // Noop triggered by layer change.
-    ExpectKeys();
     // Expect modifier turned on.
     ExpectKeyPressed(KC_LSFT);
   }
@@ -21,8 +20,6 @@ class LayerModHoldTapTest : public TestFixture {
   void ExpectDeactivation() {
     // Expect modifier turned off.
     ExpectKeyReleased(KC_LSFT);
-    // Noop triggered by layer change.
-    ExpectKeys();
   }
 
   void ExpectKeys() {
@@ -110,26 +107,24 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
   }
 }
 
-TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
-  {
-    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
-    ExpectKeyPressed(KC_Q);
-  }
-
+TEST_F(LayerModHoldTapTest, FullInterruptingPressOfTransparentPositionResultsInModdedBaseLayer) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
   }
 
   {
-    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+    ScopedPhysicalKeyPress down(this, 0, 1, Position::DOWN);
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 0, 1, Position::UP);
   }
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
+    ExpectTap(KC_A);
     ExpectDeactivation();
-    ExpectTap(KC_ESC);
-    ExpectKeyReleased(KC_Q);
   }
 }
 
@@ -154,6 +149,30 @@ TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModif
   }
 }
 
+TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
+  {
+    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+    ExpectKeyPressed(KC_Q);
+  }
+
+  {
+    ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
+    ExpectActivation();
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
+    ExpectDeactivation();
+    ExpectTap(KC_ESC);
+    ExpectKeyReleased(KC_Q);
+  }
+}
+
+
 TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifiedPress) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
@@ -171,15 +190,28 @@ TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifie
   {
     ScopedPhysicalKeyPress down(this, 1, 0, Position::DOWN);
 
-    // Buffered presses are flushed and the latest one is let through.
+    // Buffered presses are flushed with synthetic ups.
     ExpectKeyPressed(KC_1);
+    ExpectKeyReleased(KC_1);
+
     ExpectKeyPressed(KC_2);
+    ExpectKeyReleased(KC_2);
   }
 
   // Noop on special key release.
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
     ExpectDeactivation();
+  }
+
+  // Empty keyboard reports on key up. This is fine.
+  {
+    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+    ExpectKeys();
+  }
+  {
+    ScopedPhysicalKeyPress up(this, 1, 0, Position::UP);
+    ExpectKeys();
   }
 }
 
