@@ -107,6 +107,7 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
   }
 }
 
+static_assert(false, "Behaviour should be changed to flushing the synthetic up presses on release. Otherwise this breaks shift+ctrl+left");
 TEST_F(LayerModHoldTapTest, FullInterruptingPressOfTransparentPositionResultsInModdedBaseLayer) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
