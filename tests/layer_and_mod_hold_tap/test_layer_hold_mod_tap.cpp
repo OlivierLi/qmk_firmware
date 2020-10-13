@@ -107,7 +107,6 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
   }
 }
 
-static_assert(false, "Behaviour should be changed to flushing the synthetic up presses on release. Otherwise this breaks shift+ctrl+left");
 TEST_F(LayerModHoldTapTest, FullInterruptingPressOfTransparentPositionResultsInModdedBaseLayer) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
@@ -191,12 +190,9 @@ TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifie
   {
     ScopedPhysicalKeyPress down(this, 1, 0, Position::DOWN);
 
-    // Buffered presses are flushed with synthetic ups.
+    // Buffered presses are flushed.
     ExpectKeyPressed(KC_1);
-    ExpectKeyReleased(KC_1);
-
     ExpectKeyPressed(KC_2);
-    ExpectKeyReleased(KC_2);
   }
 
   // Noop on special key release.
@@ -208,11 +204,12 @@ TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifie
   // Empty keyboard reports on key up. This is fine.
   {
     ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
-    ExpectKeys();
+    ExpectKeyReleased(KC_1);
   }
+
   {
     ScopedPhysicalKeyPress up(this, 1, 0, Position::UP);
-    ExpectKeys();
+    ExpectKeyReleased(KC_2);
   }
 }
 

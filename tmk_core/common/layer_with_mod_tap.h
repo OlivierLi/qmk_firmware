@@ -13,6 +13,11 @@ struct InteruptingPress {
   uint16_t target_layer_keycode;
   uint16_t time;
 };
+
+struct SwappedRelease {
+  uint16_t keycode;
+  uint16_t target_layer_keycode;
+};
 // ----------------------------------------------------------------------------
 
 // Variables ------------------------------------------------------------------

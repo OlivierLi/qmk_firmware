@@ -1,6 +1,7 @@
 #include "quantum.h"
 #include "quantum/keymap.h"
 #include "layer_with_mod_tap.h"
+#include <string.h>
 
 uint16_t last_layer_tap_mod_down_time = 0;
 bool layer_tap_mod_in_progress = false;
@@ -8,6 +9,10 @@ bool interrupted = false;
 
 struct InteruptingPress pending_keys[PENDING_KEYS_BUFFER_SIZE] = {0};
 uint8_t pending_keys_count = 0;
+
+struct SwappedRelease swapped_releases[PENDING_KEYS_BUFFER_SIZE] = {0};
+uint8_t swapped_release_count = 0;
+
 uint8_t current_layer = 0; 
 uint8_t target_layer = 0; 
 
@@ -36,29 +41,34 @@ void flush_pending(bool use_target_layer){
 
   for(int i=0;i<pending_keys_count;++i){
 
-    uint16_t keycode = 0;
-    if(use_target_layer){
-      keycode = pending_keys[i].target_layer_keycode;
+    const uint16_t target_layer_keycode = pending_keys[i].target_layer_keycode;
+    const uint16_t keycode = pending_keys[i].keycode;
+
+    uint16_t replay_keycode;
+    if(use_target_layer && target_layer_keycode != KC_TRANSPARENT){
+      replay_keycode = target_layer_keycode;
     }
     else {
-      keycode = pending_keys[i].keycode;
+      replay_keycode = keycode;
     }
 
     if(pending_keys[i].is_down){
-     register_code16(keycode);
+     register_code16(replay_keycode);
 
      // We're dealing in synthetic presses here. We need to check if the
      // real layer press completed and not the target one.
      if(use_target_layer && !press_completed(pending_keys[i].keycode, i)){
-       // TODO: Maybe this should be simulated on deactivation?
-       // Otherwhise we might mess with some chords if this is not a final
-       // flush.
-       unregister_code16(keycode);
+       if(swapped_release_count != PENDING_KEYS_BUFFER_SIZE-1){
+         struct SwappedRelease swapped_release = {
+           .keycode = keycode,
+           .target_layer_keycode = target_layer_keycode};
+         swapped_releases[swapped_release_count++] = swapped_release;
+       }
      }
 
     }
     else {
-     unregister_code16(keycode);
+     unregister_code16(replay_keycode);
     }
   } 
 
@@ -89,7 +99,10 @@ bool buffer_key(uint16_t keycode, keyrecord_t *record){
   }
 }
 
+static_assert(false, "swapped_release_count is not useful at all here. Insert should be done in first free space and have a graceful failure");
+
 bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
+  const bool is_down = record->event.pressed;
 
   // Any action on the layer tap mod key should be handled in the layer_with_mod_on_hold_key_on_tap().
   if(keycode == LAYER_TAP_MOD){
@@ -98,6 +111,13 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
 
   // Outside of layer tap mod just handle normally.
   if(!layer_tap_mod_in_progress){
+    for(int i=0;i<PENDING_KEYS_BUFFER_SIZE;++i){
+      if(swapped_releases[i].keycode && !is_down){
+        unregister_code16(swapped_releases[i].target_layer_keycode);
+        memset(&swapped_releases[i], 0, sizeof(struct SwappedRelease));
+        return true;
+      }
+    }
     return false;
   }
 
@@ -159,11 +179,6 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
         const uint16_t time_between_mod_tap_and_first_buffer = pending_keys[0].time - last_layer_tap_mod_down_time;
 
         if(pending_keys_count > 0 && time_between_mod_tap_and_first_buffer > 60){
-
-          // TODO: Still needed?
-          /*struct InteruptingPress interupting_press = pending_keys[0];*/
-          /*interupting_press.is_down = false;*/
-          /*pending_keys[pending_keys_count++] = interupting_press;*/
 
           flush_pending(true);
 
