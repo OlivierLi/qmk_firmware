@@ -211,7 +211,5 @@ bool music_mask_user(uint16_t keycode) {
 #endif
 
 uint32_t layer_state_set_user(uint32_t state) {
-    const uint8_t layer = get_highest_layer(state);
-    layer_with_mod_tap_on_layer_change(layer);
     return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
 }

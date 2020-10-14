@@ -2,6 +2,7 @@
 #include "quantum/keymap.h"
 #include "layer_with_mod_tap.h"
 #include <string.h>
+#include <print.h>
 
 uint16_t last_layer_tap_mod_down_time = 0;
 bool layer_tap_mod_in_progress = false;
@@ -12,19 +13,22 @@ uint8_t pending_keys_count = 0;
 
 struct SwappedRelease swapped_releases[SWAPPED_KEYS_BUFFER_SIZE] = {0};
 
-uint8_t current_layer = 0; 
 uint8_t target_layer = 0; 
 
+// Returns true if there is an up event within the buffered keys for |keycode|
+// starting at |pos|. Otherwise returns false. Use this to know if a full keypress
+// was buffered.
 bool press_completed(uint16_t keycode, int pos){
   for(int i=pos;i<pending_keys_count;++i){
     if(!pending_keys[i].is_down && (pending_keys[i].keycode == keycode)){
       return true;
     }
   }
-
   return false;
 }
 
+// Returns true if both the down and up events were buffered for the same
+// key. Otherwise returns false.
 bool complete_press_buffered(void){
   for(int i=0;i<pending_keys_count;++i){
     if(pending_keys[i].is_down){
@@ -36,6 +40,9 @@ bool complete_press_buffered(void){
   return false;
 }
 
+// Replay all the keys that were buffered. If up events for a key on the target
+// layer is replayed without a matching up event then ammend swapped_releases to
+// know to do the translation later on when the up event takes place.
 void flush_pending(bool use_target_layer){
 
   for(int i=0;i<pending_keys_count;++i){
@@ -77,10 +84,7 @@ void flush_pending(bool use_target_layer){
   pending_keys_count = 0;
 }
 
-void layer_with_mod_tap_on_layer_change(uint8_t layer){
-  current_layer = layer;
-}
-
+// Save a keypress to played back later.
 bool buffer_key(uint16_t keycode, keyrecord_t *record){
   const bool is_down = record->event.pressed;
 
@@ -101,6 +105,7 @@ bool buffer_key(uint16_t keycode, keyrecord_t *record){
   }
 }
 
+// See layer_with_mod_tap.h for comment.
 bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
   const bool is_down = record->event.pressed;
 
@@ -136,6 +141,7 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
   return true;
 }
 
+// See layer_with_mod_tap.h for comment.
 void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8_t hold_mod, uint8_t tap_keycode) {
   // Key down.
   if (record->event.pressed) {
@@ -147,6 +153,7 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
     // Activate modifier first.
     register_mods(MOD_BIT(hold_mod));
 
+    // Reset state.
     layer_tap_mod_in_progress = true;
     interrupted = false;
   }
