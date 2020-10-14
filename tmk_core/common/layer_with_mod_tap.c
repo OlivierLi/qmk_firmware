@@ -141,10 +141,7 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
   return true;
 }
 
-// See layer_with_mod_tap.h for comment.
-void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8_t hold_mod, uint8_t tap_keycode) {
-  // Key down.
-  if (record->event.pressed) {
+void layer_with_mod_on_hold_key_on_tap_down(keyrecord_t *record, uint8_t layer, uint8_t hold_mod) {
     last_layer_tap_mod_down_time = record->event.time;
 
     // Save the target layer.
@@ -156,62 +153,69 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
     // Reset state.
     layer_tap_mod_in_progress = true;
     interrupted = false;
-  }
-  // Key up.
-  else{
-    const uint16_t elapsed_time = record->event.time - last_layer_tap_mod_down_time;
-    if (elapsed_time <= TAPPING_TERM) {
-      // Normal tap.
-      if(!interrupted){
-        // Reset state.
-        unregister_mods(MOD_BIT(hold_mod));
+}
 
-        register_code16(tap_keycode);
-        unregister_code16(tap_keycode);
+void layer_with_mod_on_hold_key_on_tap_up(keyrecord_t *record, uint8_t hold_mod, uint16_t tap_keycode) {
+  const uint16_t elapsed_time = record->event.time - last_layer_tap_mod_down_time;
+  // If the key was released within the tapping term.
+  if (elapsed_time <= TAPPING_TERM) {
 
-        // Key no longer held, no longer in progress.
-        layer_tap_mod_in_progress = false;
-        return;
-      }
+    // Normal tap.
+    if(!interrupted){
+      // Reset state.
+      unregister_mods(MOD_BIT(hold_mod));
 
-      // A full key press happened within the tapping term.
-      if(complete_press_buffered()){
-        flush_pending(true);
+      tap_code16(tap_keycode);
 
-        // Reset state.
-        unregister_mods(MOD_BIT(hold_mod));
-      }
-      else {
-
-        const uint16_t time_between_mod_tap_and_first_buffer = pending_keys[0].time - last_layer_tap_mod_down_time;
-
-        if(pending_keys_count > 0 && time_between_mod_tap_and_first_buffer > 60){
-
-          flush_pending(true);
-
-          // Reset state.
-          unregister_mods(MOD_BIT(hold_mod));
-        }
-
-        else{
-          // Reset state.
-          unregister_mods(MOD_BIT(hold_mod));
-
-          register_code16(tap_keycode);
-          unregister_code16(tap_keycode);
-
-          flush_pending(false);
-        }
-      }
+      // Key no longer held, no longer in progress.
+      layer_tap_mod_in_progress = false;
+      return;
     }
-    else {
+
+    // A full key press happened within the tapping term.
+    if(complete_press_buffered()){
       flush_pending(true);
 
       // Reset state.
       unregister_mods(MOD_BIT(hold_mod));
     }
+    else {
+      const uint16_t time_between_mod_tap_and_first_buffer = pending_keys[0].time - last_layer_tap_mod_down_time;
 
-    // Key no longer held, no longer in progress.
-    layer_tap_mod_in_progress = false;
+      if(pending_keys_count > 0 && time_between_mod_tap_and_first_buffer > 60){
+
+        flush_pending(true);
+
+        // Reset state.
+        unregister_mods(MOD_BIT(hold_mod));
+      }
+
+      else{
+        unregister_mods(MOD_BIT(hold_mod));
+        tap_code16(tap_keycode);
+        flush_pending(false);
+      }
+    }
+  }
+  else {
+    flush_pending(true);
+
+    // Reset state.
+    unregister_mods(MOD_BIT(hold_mod));
+  }
+
+  // Key no longer held, no longer in progress.
+  layer_tap_mod_in_progress = false;
+}
+
+// See layer_with_mod_tap.h for comment.
+void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8_t hold_mod, uint8_t tap_keycode) {
+  // Key down.
+  if (record->event.pressed) {
+    layer_with_mod_on_hold_key_on_tap_down(record, layer, hold_mod);
+  }
+  // Key up.
+  else{
+    layer_with_mod_on_hold_key_on_tap_up(record, hold_mod, tap_keycode);
   }
 }
