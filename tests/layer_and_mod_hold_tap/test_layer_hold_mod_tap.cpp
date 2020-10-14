@@ -149,6 +149,8 @@ TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModif
   }
 }
 
+// TODO: Write a test where two keys are buffered but only one of the two is complete.
+
 TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
   {
     ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
