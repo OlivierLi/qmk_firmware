@@ -173,7 +173,7 @@ void layer_with_mod_on_hold_key_on_tap_up(keyrecord_t *record, uint8_t hold_mod,
 
   // vvv If the key was released within the tapping term. vvv
 
-  // Nothing interrupted the hold.
+  // Nothing interrupted the hold. This is the "default" scenario where only a tap is desired.
   if(!interrupted){
     // Reset state.
     unregister_mods(MOD_BIT(hold_mod));
@@ -183,8 +183,8 @@ void layer_with_mod_on_hold_key_on_tap_up(keyrecord_t *record, uint8_t hold_mod,
     return;
   }
 
-  // A full key press happened within the tapping term. This means we do never want to tap |tap_keycode|.
-  // The buffered keys are played back though.
+  // A full key press was buffered within the tapping term. This indicates intent to use the key as a hold.
+  // This means we do never want to tap |tap_keycode|. The buffered keys are played back under |hold_mod|.
   if(complete_press_buffered()){
     flush_pending(true);
 
