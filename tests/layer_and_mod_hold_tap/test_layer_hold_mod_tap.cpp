@@ -201,7 +201,6 @@ TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifie
     ExpectDeactivation();
   }
 
-  // Empty keyboard reports on key up. This is fine.
   {
     ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
     ExpectKeyReleased(KC_1);
@@ -210,6 +209,17 @@ TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifie
   {
     ScopedPhysicalKeyPress up(this, 1, 0, Position::UP);
     ExpectKeyReleased(KC_2);
+  }
+
+  // Back to normal keys aren't swapped anymore.
+  {
+    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
+    ExpectKeyPressed(KC_Q);
+  }
+
+  {
+    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
+    ExpectKeyReleased(KC_Q);
   }
 }
 

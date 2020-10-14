@@ -10,8 +10,7 @@ bool interrupted = false;
 struct InteruptingPress pending_keys[PENDING_KEYS_BUFFER_SIZE] = {0};
 uint8_t pending_keys_count = 0;
 
-struct SwappedRelease swapped_releases[PENDING_KEYS_BUFFER_SIZE] = {0};
-uint8_t swapped_release_count = 0;
+struct SwappedRelease swapped_releases[SWAPPED_KEYS_BUFFER_SIZE] = {0};
 
 uint8_t current_layer = 0; 
 uint8_t target_layer = 0; 
@@ -53,22 +52,25 @@ void flush_pending(bool use_target_layer){
     }
 
     if(pending_keys[i].is_down){
-     register_code16(replay_keycode);
+      register_code16(replay_keycode);
 
-     // We're dealing in synthetic presses here. We need to check if the
-     // real layer press completed and not the target one.
-     if(use_target_layer && !press_completed(pending_keys[i].keycode, i)){
-       if(swapped_release_count != PENDING_KEYS_BUFFER_SIZE-1){
-         struct SwappedRelease swapped_release = {
-           .keycode = keycode,
-           .target_layer_keycode = target_layer_keycode};
-         swapped_releases[swapped_release_count++] = swapped_release;
-       }
-     }
+      if(use_target_layer && !press_completed(pending_keys[i].keycode, i)){
+
+        for(int i=0;i<SWAPPED_KEYS_BUFFER_SIZE;++i){
+          if(!swapped_releases[i].keycode){
+            struct SwappedRelease swapped_release = {
+              .keycode = keycode,
+              .target_layer_keycode = target_layer_keycode};
+            swapped_releases[i] = swapped_release;
+            break;
+          }
+
+        }
+      }
 
     }
     else {
-     unregister_code16(replay_keycode);
+      unregister_code16(replay_keycode);
     }
   } 
 
@@ -99,8 +101,6 @@ bool buffer_key(uint16_t keycode, keyrecord_t *record){
   }
 }
 
-static_assert(false, "swapped_release_count is not useful at all here. Insert should be done in first free space and have a graceful failure");
-
 bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
   const bool is_down = record->event.pressed;
 
@@ -111,7 +111,7 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
 
   // Outside of layer tap mod just handle normally.
   if(!layer_tap_mod_in_progress){
-    for(int i=0;i<PENDING_KEYS_BUFFER_SIZE;++i){
+    for(int i=0;i<SWAPPED_KEYS_BUFFER_SIZE;++i){
       if(swapped_releases[i].keycode && !is_down){
         unregister_code16(swapped_releases[i].target_layer_keycode);
         memset(&swapped_releases[i], 0, sizeof(struct SwappedRelease));

@@ -3,6 +3,7 @@
 
 // Constants ------------------------------------------------------------------
 #define PENDING_KEYS_BUFFER_SIZE 8
+#define SWAPPED_KEYS_BUFFER_SIZE 8
 #define LAYER_TAP_MOD 100
 // ----------------------------------------------------------------------------
 
