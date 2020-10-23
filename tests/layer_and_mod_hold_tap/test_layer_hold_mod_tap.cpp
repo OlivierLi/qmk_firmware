@@ -149,6 +149,7 @@ TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModif
   }
 }
 
+// TODO: Write a test with CSA characters, it will not work.
 // TODO: Write a test where two keys are buffered but only one of the two is complete.
 // TODO: Write a test for th timing related special cases. 
 // TODO: Write a test where the buffered keys had transparent on the target layer. (Regression test for the current fix)
