@@ -1,4 +1,5 @@
 #include "quantum.h"
+#include "keymap_canadian_multilingual.h"
 #include "layer_with_mod_tap.h"
 
 uint16_t last_layer_tap_mod_down_time = 0;
@@ -61,6 +62,17 @@ void layer_with_mod_tap_on_layer_change(uint8_t layer){
 
 bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
   const bool is_down = record->event.pressed;
+
+  // ------------------------------------------------------------------------
+  // Some codes won't register if paired with shift.
+  // Dirty hack to try and avoid weird issues on macos before the actual fix.
+  switch (keycode) {
+    case CSA_LESS:
+    case CSA_GRTR:
+    case CSA_PIPE:
+    return false;
+  }
+  // ------------------------------------------------------------------------
 
   // Any action on the layer tap mod key should be handled in the layer_with_mod_on_hold_key_on_tap().
   if(keycode == LAYER_TAP_MOD){
