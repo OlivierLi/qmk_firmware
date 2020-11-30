@@ -149,10 +149,13 @@ TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModif
   }
 }
 
-// TODO: Write a test with CSA characters, it will not work.
+// TODO: Write a test with CSA characters, it will not work. A possible fix is to completely avoid the switch in keymap.c and just apply one-shot modifiers? Otherwise clear before flushing.
 // TODO: Write a test where two keys are buffered but only one of the two is complete.
-// TODO: Write a test for th timing related special cases. 
+// TODO: Write a test for the timing related special cases. 
 // TODO: Write a test where the buffered keys had transparent on the target layer. (Regression test for the current fix)
+// TODO: Write a test where the active layer is higher than the target layer. In that case we should use the active layer.
+// TODO: Look at the function get_event_keycode and see if it can simply code.
+// TODO: Remove the CSA commit from master, update the fork.
 
 TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
   {
