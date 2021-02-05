@@ -75,7 +75,7 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record){
   // ------------------------------------------------------------------------
 
   // Any action on the layer tap mod key should be handled in the layer_with_mod_on_hold_key_on_tap().
-  if(keycode == LAYER_TAP_MOD){
+  if(keycode == LAYER_TAP_MOD || keycode == LAYER_TAP_MOD2){
     return false;
   }
 
@@ -127,12 +127,23 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
     if (elapsed_time <= TAPPING_TERM) {
       // Normal tap.
       if(!interrupted){
+
         // Reset state.
-        unregister_mods(MOD_BIT(hold_mod));
+        if(tap_keycode != CA_COMM){
+          // DIRTY HACKZ, as a special case, don't remove the HOLD before pressing
+          // CA_COMM specifically so it creates a CA_APOS which is what we want.
+          unregister_mods(MOD_BIT(hold_mod));
+        } 
+
         layer_off(layer);
 
         register_code16(tap_keycode);
         unregister_code16(tap_keycode);
+        
+        if(tap_keycode == CA_COMM){
+        // DIRTY HACKZ, unregister now because we're done tapping.
+          unregister_mods(MOD_BIT(hold_mod));
+        } 
 
         // Key no longer held, no longer in progress.
         layer_tap_mod_in_progress = false;

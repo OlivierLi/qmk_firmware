@@ -19,6 +19,7 @@ enum custom_keycodes {
   LEFT_SC_CONTROL,
   RIGHT_SC_CONTROL,
   KC_LMT1 = LAYER_TAP_MOD,
+  KC_LMT2 = LAYER_TAP_MOD2,
 };
 
 #endif // ENUMS_H
