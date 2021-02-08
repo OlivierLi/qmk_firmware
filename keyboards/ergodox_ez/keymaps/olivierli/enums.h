@@ -15,7 +15,7 @@ enum custom_keycodes {
   ST_MACRO_4,
   ST_MACRO_5,
   ST_MACRO_6,
-  CSA_RSPC,
+  CLEAR_LAYER,
   LEFT_SC_CONTROL,
   RIGHT_SC_CONTROL,
   KC_LMT1 = LAYER_TAP_MOD,

@@ -172,11 +172,20 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer, uint8
         }
         else{
           // Reset state.
-          unregister_mods(MOD_BIT(hold_mod));
+          if(tap_keycode != CA_COMM){
+            // DIRTY HACKZ, as a special case, don't remove the HOLD before pressing
+            // CA_COMM specifically so it creates a CA_APOS which is what we want.
+            unregister_mods(MOD_BIT(hold_mod));
+          } 
           layer_off(layer);
 
           register_code16(tap_keycode);
           unregister_code16(tap_keycode);
+
+          if(tap_keycode == CA_COMM){
+            // DIRTY HACKZ, unregister now because we're done tapping.
+            unregister_mods(MOD_BIT(hold_mod));
+          } 
 
           flush_pending(true);
         }
