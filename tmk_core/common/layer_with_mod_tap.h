@@ -1,6 +1,9 @@
 #ifndef LAYER_WITH_MOD_TAP_H
 #define LAYER_WITH_MOD_TAP_H
 
+#include <stdbool.h>
+#include "quantum.h"
+
 // Constants ------------------------------------------------------------------
 #define PENDING_KEYS_BUFFER_SIZE 8
 #define LAYER_TAP_MOD 100
@@ -26,10 +29,6 @@ extern uint8_t pending_keys_count;
 extern uint8_t current_layer;
 extern uint8_t previous_layer;
 // ----------------------------------------------------------------------------
-
-// translates key to keycode
-__attribute__((weak)) uint16_t keymap_key_to_keycode(uint8_t layer,
-                                                     keypos_t key);
 
 uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record);
 

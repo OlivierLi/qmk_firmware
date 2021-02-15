@@ -12,12 +12,6 @@ uint8_t pending_keys_count = 0;
 uint8_t current_layer = 0;
 uint8_t previous_layer = 0;
 
-__attribute__((weak)) uint16_t keymap_key_to_keycode(uint8_t layer,
-                                                     keypos_t key) {
-  // Read entire word (16bits)
-  return pgm_read_word(&keymaps[(layer)][(key.row)][(key.col)]);
-}
-
 uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record) {
   return keymap_key_to_keycode(layer, record->event.key);
 }

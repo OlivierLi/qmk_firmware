@@ -61,7 +61,8 @@ enum class Position { DOWN, UP };
 class ScopedPhysicalKeyPress {
  public:
   explicit ScopedPhysicalKeyPress(LayerModHoldTapTest* test, uint8_t col,
-                                  uint8_t row, Position position) : test_(test) {
+                                  uint8_t row, Position position)
+      : test_(test) {
     assert(test);
 
     if (position == Position::DOWN) {
@@ -95,7 +96,7 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
     ExpectActivation();
   }
 
-  idle_for(TAPPING_TERM+1);
+  idle_for(TAPPING_TERM + 1);
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
@@ -106,19 +107,16 @@ TEST_F(LayerModHoldTapTest, PressingForMoreThanTappingTermResultsInNoop) {
   }
 }
 
-TEST_F(LayerModHoldTapTest, FullInterruptingPressOfTransparentPositionResultsInModdedBaseLayer) {
+TEST_F(LayerModHoldTapTest,
+       FullInterruptingPressOfTransparentPositionResultsInModdedBaseLayer) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
   }
 
-  {
-    ScopedPhysicalKeyPress down(this, 0, 1, Position::DOWN);
-  }
+  { ScopedPhysicalKeyPress down(this, 0, 1, Position::DOWN); }
 
-  {
-    ScopedPhysicalKeyPress up(this, 0, 1, Position::UP);
-  }
+  { ScopedPhysicalKeyPress up(this, 0, 1, Position::UP); }
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
@@ -127,7 +125,8 @@ TEST_F(LayerModHoldTapTest, FullInterruptingPressOfTransparentPositionResultsInM
   }
 }
 
-TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
+TEST_F(LayerModHoldTapTest,
+       CompletingPressAsInterruptionDuringTappingTermResultsInOriginalPress) {
   {
     ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
     ExpectKeyPressed(KC_Q);
@@ -138,9 +137,7 @@ TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResult
     ExpectActivation();
   }
 
-  {
-    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
-  }
+  { ScopedPhysicalKeyPress up(this, 0, 0, Position::UP); }
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
@@ -150,19 +147,16 @@ TEST_F(LayerModHoldTapTest, CompletingPressAsInterruptionDuringTappingTermResult
   }
 }
 
-TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModifiedPress) {
+TEST_F(LayerModHoldTapTest,
+       FullInterruptingPressDuringTappingTermResultsInModifiedPress) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
   }
 
-  {
-    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
-  }
+  { ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN); }
 
-  {
-    ScopedPhysicalKeyPress up(this, 0, 0, Position::UP);
-  }
+  { ScopedPhysicalKeyPress up(this, 0, 0, Position::UP); }
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
@@ -171,18 +165,17 @@ TEST_F(LayerModHoldTapTest, FullInterruptingPressDuringTappingTermResultsInModif
   }
 }
 
-TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifiedPress) {
+TEST_F(LayerModHoldTapTest,
+       InterruptingAfterTappingTermResultsInFlushAndModifiedPress) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
   }
 
   // Within tapping term, key is swallowed.
-  {
-    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
-  }
+  { ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN); }
 
-  idle_for(TAPPING_TERM+1);
+  idle_for(TAPPING_TERM + 1);
 
   // Outisde tapping term.
   {
@@ -200,16 +193,15 @@ TEST_F(LayerModHoldTapTest, InterruptingAfterTappingTermResultsInFlushAndModifie
   }
 }
 
-TEST_F(LayerModHoldTapTest, InterruptingTapWithAnIncompleteKeyPressShouldResultsInTapPlusFlush) {
+TEST_F(LayerModHoldTapTest,
+       InterruptingTapWithAnIncompleteKeyPressShouldResultsInTapPlusFlush) {
   {
     ScopedPhysicalKeyPress down(this, 7, 0, Position::DOWN);
     ExpectActivation();
   }
 
   // Within tapping term, key is swallowed.
-  {
-    ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN);
-  }
+  { ScopedPhysicalKeyPress down(this, 0, 0, Position::DOWN); }
 
   {
     ScopedPhysicalKeyPress up(this, 7, 0, Position::UP);
