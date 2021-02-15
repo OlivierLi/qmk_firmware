@@ -6,6 +6,11 @@
 
 // Constants ------------------------------------------------------------------
 #define PENDING_KEYS_BUFFER_SIZE 8
+// ----------------------------------------------------------------------------
+
+// Custom codes ---------------------------------------------------------------
+// One code must be defined per use of layer_with_mod_tap. Using the same code
+// for two or more uses will result in broken behavior.
 #define LAYER_TAP_MOD 100
 #define LAYER_TAP_MOD2 101
 // ----------------------------------------------------------------------------

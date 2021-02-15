@@ -164,7 +164,7 @@ rgblight_config_t rgblight_config;
 uint32_t layer_state_set_user(uint32_t state) {
 
     const uint8_t layer = biton32(state);
-    layer_with_mod_tap_on_layer_change(current_layer);
+    layer_with_mod_tap_on_layer_change(layer);
 
     ergodox_board_led_off();
     ergodox_right_led_1_off();
