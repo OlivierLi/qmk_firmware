@@ -12,10 +12,6 @@ uint8_t current_layer = 0;
 uint8_t previous_layer = 0;
 uint8_t pending_keys_count = 0;
 
-uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record) {
-  return keymap_key_to_keycode(layer, record->event.key);
-}
-
 bool complete_press_buffered(void) {
   for (int i = 0; i < pending_keys_count; ++i) {
     if (pending_keys[i].is_down) {
@@ -92,7 +88,7 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record) {
         .is_down = is_down,
         .keycode = keycode,
         .time = record->event.time,
-        .previous_layer_keycode = GetKeyFromMatrix(previous_layer, record)};
+        .previous_layer_keycode = keymap_key_to_keycode(previous_layer, record->event.key)};
 
     pending_keys[pending_keys_count++] = interupting_press;
   }
@@ -154,7 +150,11 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
         layer_off(layer);
       } else {
         if (pending_keys_count > 0 &&
-            (pending_keys[0].time - last_layer_tap_mod_down_time > 60)) {
+            (pending_keys[0].time - last_layer_tap_mod_down_time > FALSE_ROLLOVER_DELAY)) {
+
+          // A "false rollover" is detected. Emit a synthetic "up" event so that the
+          // key registers fully. This is now considered a fully buffered press so there is no
+          // tap.
           struct InteruptingPress interupting_press = pending_keys[0];
           interupting_press.is_down = false;
           pending_keys[pending_keys_count++] = interupting_press;

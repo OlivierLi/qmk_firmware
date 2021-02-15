@@ -6,6 +6,11 @@
 
 // Constants ------------------------------------------------------------------
 #define PENDING_KEYS_BUFFER_SIZE 8
+
+// If more time goes by between the layer_with_mod_tap press and the the press
+// of the first key consider the press a full press even if there were no associated
+// up events. This values was determined through statistical analysis of typing patterns.
+#define FALSE_ROLLOVER_DELAY 60
 // ----------------------------------------------------------------------------
 
 // Custom codes ---------------------------------------------------------------
@@ -24,8 +29,6 @@ struct InteruptingPress {
 };
 // ----------------------------------------------------------------------------
 
-uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record);
-
 // Returns true if both key down event and it's associated key up were buffered.
 bool complete_press_buffered(void);
 
@@ -38,7 +41,7 @@ void flush_pending(bool use_previous_layer);
 void layer_with_mod_tap_on_layer_change(uint8_t layer);
 
 // This function has to be called on process_record_user() to know if a layer
-// hold got interrupted.  Returns true if the press was absorbed and should not
+// hold got interrupted. Returns true if the press was absorbed and should not
 // buble up.
 bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record);
 
