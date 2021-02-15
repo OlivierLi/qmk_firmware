@@ -8,9 +8,9 @@ bool layer_tap_mod_in_progress = false;
 bool interrupted = false;
 
 struct InteruptingPress pending_keys[PENDING_KEYS_BUFFER_SIZE] = {0};
-uint8_t pending_keys_count = 0;
 uint8_t current_layer = 0;
 uint8_t previous_layer = 0;
+uint8_t pending_keys_count = 0;
 
 uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record) {
   return keymap_key_to_keycode(layer, record->event.key);
@@ -48,7 +48,7 @@ void flush_pending(bool use_previous_layer) {
   pending_keys_count = 0;
 }
 
-void layer_with_mod_tap_on_layer_change(uint8_t layer) {
+void layer_with_mod_tap_on_layer_change(uint8_t layer){
   current_layer = layer;
 }
 

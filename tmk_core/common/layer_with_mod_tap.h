@@ -24,23 +24,17 @@ struct InteruptingPress {
 };
 // ----------------------------------------------------------------------------
 
-// Variables ------------------------------------------------------------------
-extern uint16_t last_layer_tap_mod_down_time;
-extern bool layer_tap_mod_in_progress;
-extern bool interrupted;
-
-extern struct InteruptingPress pending_keys[PENDING_KEYS_BUFFER_SIZE];
-extern uint8_t pending_keys_count;
-extern uint8_t current_layer;
-extern uint8_t previous_layer;
-// ----------------------------------------------------------------------------
-
 uint16_t GetKeyFromMatrix(uint8_t layer, keyrecord_t *record);
 
+// Returns true if both key down event and it's associated key up were buffered.
 bool complete_press_buffered(void);
 
+// Emit all the buffered key presses.
 void flush_pending(bool use_previous_layer);
 
+// Updates the current layer to account for layer changes that take place during a hold.
+// Currently nothing is done with the information but to provide correct behavior a buffered
+// press of 8 that takes place after a layer 2 activation should return *. 
 void layer_with_mod_tap_on_layer_change(uint8_t layer);
 
 // This function has to be called on process_record_user() to know if a layer
