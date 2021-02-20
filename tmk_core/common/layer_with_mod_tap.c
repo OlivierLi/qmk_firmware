@@ -1,6 +1,7 @@
 #include "layer_with_mod_tap.h"
 
 #include "keymap_canadian_multilingual.h"
+#include "print.h"
 #include "quantum.h"
 
 uint16_t last_layer_tap_mod_down_time = 0;
@@ -44,7 +45,7 @@ void flush_pending(bool use_previous_layer) {
   pending_keys_count = 0;
 }
 
-void layer_with_mod_tap_on_layer_change(uint8_t layer){
+void layer_with_mod_tap_on_layer_change(uint8_t layer) {
   current_layer = layer;
 }
 
@@ -88,13 +89,47 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record) {
         .is_down = is_down,
         .keycode = keycode,
         .time = record->event.time,
-        .previous_layer_keycode = keymap_key_to_keycode(previous_layer, record->event.key)};
+        .previous_layer_keycode =
+            keymap_key_to_keycode(previous_layer, record->event.key)};
 
     pending_keys[pending_keys_count++] = interupting_press;
   }
 
   // Swallow the key.
   return true;
+}
+
+bool at_least_two(bool a, bool b, bool c) { return a ? (b || c) : (b && c); }
+
+struct NormalDistribution {
+  float avg;
+  float stddev;
+};
+
+const struct NormalDistribution rollover_distributions[3] = {
+    {.avg = 45.11, .stddev = 19.67},
+    {.avg = 30.64, .stddev = 21.16},
+    {.avg = 75.74, .stddev = 8.00}};
+
+const struct NormalDistribution hold_distributions[3] = {
+    {.avg = 66.72, .stddev = 18.88} ,
+    {.avg = 52.64, .stddev = 16.96 },
+    {.avg = 119.36,.stddev = 7.69}};
+
+float z_value(float value, struct NormalDistribution dist) {
+  return fabs(value - dist.avg) / dist.stddev;
+}
+
+float z_values_sum(const int* timings, const struct NormalDistribution* dists){
+  float z_values_sum = 0.0;
+  for(int i=0;i<3;++i){
+    z_values_sum += z_value(timings[i], dists[i]);
+  }
+  return z_values_sum;
+}
+
+bool is_quick_hold(int timings[3]){
+  return z_values_sum(timings, hold_distributions) < z_values_sum(timings, rollover_distributions);
 }
 
 void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
@@ -149,12 +184,27 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
         unregister_mods(MOD_BIT(hold_mod));
         layer_off(layer);
       } else {
-        if (pending_keys_count > 0 &&
-            (pending_keys[0].time - last_layer_tap_mod_down_time > FALSE_ROLLOVER_DELAY)) {
+        const int hold_down_to_letter_down =
+            pending_keys[0].time - last_layer_tap_mod_down_time;
+        const int letter_down_to_hold_up =
+            record->event.time - pending_keys[0].time;
+        const int hold_down_to_hold_up =
+            record->event.time - last_layer_tap_mod_down_time;
 
-          // A "false rollover" is detected. Emit a synthetic "up" event so that the
-          // key registers fully. This is now considered a fully buffered press so there is no
-          // tap.
+        int timings[3] = {hold_down_to_letter_down, letter_down_to_hold_up, hold_down_to_hold_up};
+        uprintf("%s", is_quick_hold(timings)  ? "true" : "false");
+
+        bool cond1 = (hold_down_to_letter_down > FALSE_ROLLOVER_DELAY);
+        bool cond2 = (letter_down_to_hold_up > 40);
+        bool cond3 = (hold_down_to_hold_up > 80);
+
+        uprintf("%d, %d, %d \n", hold_down_to_letter_down,
+                letter_down_to_hold_up, hold_down_to_hold_up);
+
+        if (pending_keys_count > 0 && at_least_two(cond1, cond2, cond3)) {
+          // A "false rollover" is detected. Emit a synthetic "up" event so that
+          // the key registers fully. This is now considered a fully buffered
+          // press so there is no tap.
           struct InteruptingPress interupting_press = pending_keys[0];
           interupting_press.is_down = false;
           pending_keys[pending_keys_count++] = interupting_press;
