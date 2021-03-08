@@ -18,6 +18,10 @@
 // for two or more uses will result in broken behavior.
 #define LAYER_TAP_MOD 100
 #define LAYER_TAP_MOD2 101
+#define LAYER_TAP_MOD3 103
+#define LAYER_TAP_MOD4 104
+
+#define LAYER_TAP_MOD_MAX 104
 // ----------------------------------------------------------------------------
 
 // Structs --------------------------------------------------------------------
@@ -55,6 +59,6 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record);
 //
 // TODO: Support a tap modifier so we can use this with quotes
 void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
-                                       uint8_t hold_mod, uint8_t tap_keycode);
+                                       uint8_t hold_mod, uint8_t tap_keycode, uint8_t tap_mod);
 
 #endif  // LAYER_WITH_MOD_TAP_H

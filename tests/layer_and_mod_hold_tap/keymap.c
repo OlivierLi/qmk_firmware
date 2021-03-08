@@ -34,7 +34,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
   switch (keycode) {
     case LAYER_TAP_MOD:
-      layer_with_mod_on_hold_key_on_tap(record, 1, KC_LSFT, KC_ESC);
+      layer_with_mod_on_hold_key_on_tap(record, 1, KC_LSFT, KC_ESC, KC_NO);
       return false;
   }
 

@@ -3,6 +3,7 @@
 #include "keymap_canadian_multilingual.h"
 #include "print.h"
 #include "quantum.h"
+#include "math.h"
 
 // Quick hold detection -------------------------------------------------------
 struct NormalDistribution {
@@ -49,6 +50,20 @@ uint8_t previous_layer = 0;
 uint8_t pending_keys_count = 0;
 // ----------------------------------------------------------------------------
 
+// Algorithm to count the misclassifications.
+// Wors for dual functions keys that output characters in both modes so not ESC.
+// Buffer the next N keys.
+// If in the next N keys there are either: 
+// 1) Enough backspaces to backup over the emmited keys.
+// 2) A ctrl backspace without having a space in there.
+
+// This needs to be followed by a "retry" meaning for example that 'a is deleted AND
+// overwritten by A.
+// 
+// In those cases you have a miscaculate.
+
+// To verify if this classification extends to the ESC (difference between right and left hands) we can
+// start by just looking at the distribution of the timings between the different keys/hands.
 
 // Functions ------------------------------------------------------------------
 bool complete_press_buffered(void) {
@@ -103,12 +118,17 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record) {
 
   // Any action on the layer tap mod key should be handled in the
   // layer_with_mod_on_hold_key_on_tap().
-  if (keycode == LAYER_TAP_MOD || keycode == LAYER_TAP_MOD2) {
+  if (keycode >= LAYER_TAP_MOD && keycode <= LAYER_TAP_MOD_MAX) {
     return false;
   }
 
   // Outside of layer tap mod just handle normally.
   if (!layer_tap_mod_in_progress) {
+    return false;
+  }
+
+  // Never buffer KC_NO
+  if (keycode == KC_NO){
     return false;
   }
 
@@ -137,8 +157,27 @@ bool layer_with_mod_tap_on_key_press(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+void tap_key(uint8_t tap_keycode, uint8_t tap_mod){
+  if(tap_mod != KC_NO){
+    add_oneshot_mods(MOD_BIT(tap_mod));
+  }
+
+  register_code16(tap_keycode);
+  unregister_code16(tap_keycode);
+}
+
+void deactivate(uint8_t layer, uint8_t hold_mod){
+  // Reset state.
+  if(hold_mod != KC_NO){ 
+    unregister_mods(MOD_BIT(hold_mod));
+  }
+
+  layer_off(layer);
+}
+
 void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
-                                       uint8_t hold_mod, uint8_t tap_keycode) {
+                                       uint8_t hold_mod, uint8_t tap_keycode, uint8_t tap_mod) {
+
   // Key down.
   if (record->event.pressed) {
     last_layer_tap_mod_down_time = record->event.time;
@@ -146,35 +185,29 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
     // Activate the layer and modifier first.
     previous_layer = current_layer;
     layer_on(layer);
-    register_mods(MOD_BIT(hold_mod));
+    if(hold_mod != KC_NO){ 
+      register_mods(MOD_BIT(hold_mod));
+    }
 
     layer_tap_mod_in_progress = true;
     interrupted = false;
   }
   // Key up.
   else {
+
+    // Layer was changed while key pressed. Never activated means nothing to deactivate.
+    if(!layer_tap_mod_in_progress){
+      return;
+    }
+
     const uint16_t elapsed_time =
         record->event.time - last_layer_tap_mod_down_time;
     if (elapsed_time <= TAPPING_TERM) {
       // Normal tap.
       if (!interrupted) {
-        // Reset state.
-        if (tap_keycode != CA_COMM) {
-          // DIRTY HACKZ, as a special case, don't remove the HOLD before
-          // pressing CA_COMM specifically so it creates a CA_APOS which is what
-          // we want.
-          unregister_mods(MOD_BIT(hold_mod));
-        }
+        deactivate(layer, hold_mod);
 
-        layer_off(layer);
-
-        register_code16(tap_keycode);
-        unregister_code16(tap_keycode);
-
-        if (tap_keycode == CA_COMM) {
-          // DIRTY HACKZ, unregister now because we're done tapping.
-          unregister_mods(MOD_BIT(hold_mod));
-        }
+        tap_key(tap_keycode, tap_mod);
 
         // Key no longer held, no longer in progress.
         layer_tap_mod_in_progress = false;
@@ -185,9 +218,7 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
       if (complete_press_buffered()) {
         flush_pending(false);
 
-        // Reset state.
-        unregister_mods(MOD_BIT(hold_mod));
-        layer_off(layer);
+        deactivate(layer, hold_mod);
       } else {
         const int hold_down_to_letter_down =
             pending_keys[0].time - last_layer_tap_mod_down_time;
@@ -197,8 +228,8 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
             record->event.time - last_layer_tap_mod_down_time;
         const int timings[3] = {hold_down_to_letter_down, letter_down_to_hold_up, hold_down_to_hold_up};
 
-        uprintf("%d, %d, %d \n", hold_down_to_letter_down,
-                letter_down_to_hold_up, hold_down_to_hold_up);
+        /*uprintf("%d, %d, %d \n", hold_down_to_letter_down,*/
+                /*letter_down_to_hold_up, hold_down_to_hold_up);*/
 
         if (pending_keys_count > 0 && is_quick_hold(timings)) {
           // A "false rollover" is detected. Emit a synthetic "up" event so that
@@ -210,26 +241,11 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
 
           flush_pending(false);
 
-          // Reset state.
-          unregister_mods(MOD_BIT(hold_mod));
-          layer_off(layer);
+          deactivate(layer, hold_mod);
         } else {
-          // Reset state.
-          if (tap_keycode != CA_COMM) {
-            // DIRTY HACKZ, as a special case, don't remove the HOLD before
-            // pressing CA_COMM specifically so it creates a CA_APOS which is
-            // what we want.
-            unregister_mods(MOD_BIT(hold_mod));
-          }
-          layer_off(layer);
+          deactivate(layer, hold_mod);
 
-          register_code16(tap_keycode);
-          unregister_code16(tap_keycode);
-
-          if (tap_keycode == CA_COMM) {
-            // DIRTY HACKZ, unregister now because we're done tapping.
-            unregister_mods(MOD_BIT(hold_mod));
-          }
+          tap_key(tap_keycode, tap_mod);
 
           flush_pending(true);
         }
@@ -237,9 +253,7 @@ void layer_with_mod_on_hold_key_on_tap(keyrecord_t *record, uint8_t layer,
     } else {
       flush_pending(false);
 
-      // Reset state.
-      unregister_mods(MOD_BIT(hold_mod));
-      layer_off(layer);
+      deactivate(layer, hold_mod);
     }
 
     // Key no longer held, no longer in progress.
